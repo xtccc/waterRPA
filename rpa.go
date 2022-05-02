@@ -104,9 +104,12 @@ func mouseClick(clickTimes int, lOrR string, img string, reTry int) {
 	}
 }
 func mainWork(sheet1 *xls.WorkSheet) {
-	for i := 1; i < int(sheet1.MaxRow)-1; i++ { // 遍历rows ,遍历每一行
+	for i := 1; i <= int(sheet1.MaxRow); i++ { // 遍历rows ,遍历每一行
+		glg.Debug("sheet1.MaxRow", sheet1.MaxRow)
+		glg.Debug("i", i)
 		//取本行指令的操作类型
 		col1_str := sheet1.Row(i).Col(0)
+		glg.Debug("col1_str", col1_str)
 		if len(col1_str) == 0 {
 			break
 		}
@@ -131,51 +134,25 @@ func mainWork(sheet1 *xls.WorkSheet) {
 				glg.Info(fmt.Sprintf("%d次击打左键", col1_int), img)
 				mouseClick(col1_int, "left", img, reTry)
 			}
-
-		/* case 2: //2代表双击左键
-			//取图片名称
-			img := sheet1.Row(i).Col(1)
-			//取重试次数
-			reTry := 1
-			//第三列的类型是数字，且第三列不为0
-			if col3_int, err := strconv.Atoi(sheet1.Row(i).Col(2)); err == nil && col3_int != 0 {
-				reTry, _ = strconv.Atoi(sheet1.Row(i).Col(2)) //获取重试次数
-			}
-			mouseClick(2, "left", img, reTry)
-			glg.Info("双击左键", img)
-
-		case 3: //3代表右键
-			//取图片名称
-			img := sheet1.Row(i).Col(1)
-			//取重试次数
-			reTry := 1
-			//第三列的类型是数字，且第三列不为0
-			if col3_int, err := strconv.Atoi(sheet1.Row(i).Col(2)); err == nil && col3_int != 0 {
-				reTry, _ = strconv.Atoi(sheet1.Row(i).Col(2)) //获取重试次数
-			}
-			mouseClick(1, "right", img, reTry)
-			glg.Info("右键", img)
-		*/
 		case 4: //4代表输入文本
 			inputValue := sheet1.Row(i).Col(1)
 			clipboard.WriteAll(inputValue) //把文本写入剪贴板
-
 			ctrl_v()
+			glg.Info("ctrl+v:", inputValue)
 			time.Sleep(time.Millisecond * 500)
-			glg.Info("输入:", inputValue)
 
 		case 5: //5代表等待
 			//取图片名称
 			waitTime, _ := strconv.Atoi(sheet1.Row(i).Col(1))
-			time.Sleep(time.Millisecond * 1000 * time.Duration(waitTime))
 			glg.Info("等待", waitTime, "秒")
+			time.Sleep(time.Millisecond * 1000 * time.Duration(waitTime))
 		case 6: //6代表滚轮
 			//取图片名称
 			scroll, _ := strconv.Atoi(sheet1.Row(i).Col(1))
 			robotgo.MouseSleep = 100
+			glg.Debug("滚轮滑动", int(scroll), "距离")
 			robotgo.Scroll(0, scroll)
-			//pyautogui.scroll(int(scroll))
-			//print("滚轮滑动", int(scroll), "距离")
+
 		}
 	}
 }
@@ -187,15 +164,16 @@ func dataCheck(sheet1 *xls.WorkSheet) bool {
 	//           数字：2
 	//           日期：3
 	//           布尔：4
-	//           err||：5
+	//           error：5
 	checkCmd := true
 	//行数检查
-	if sheet1.MaxRow < 2 {
+	if sheet1.MaxRow < 1 {
 		glg.Error("没数据啊哥")
 		checkCmd = false
 	}
 	//每行数据检查
-	for i := 1; i < int(sheet1.MaxRow)-1; i++ { // 遍历rows ,遍历每一行
+
+	for i := 1; i <= int(sheet1.MaxRow); i++ { // 遍历rows ,遍历每一行
 		glg.Debug("sheet1.MaxRow", sheet1.MaxRow)
 		glg.Debug("i", i)
 		// 第1列 操作类型检查
@@ -260,6 +238,7 @@ func main() {
 		glg.Get().DisableColor()
 	}
 	glg.Get().SetLevel(glg.INFO)
+	//glg.Get().SetLevel(glg.DEBG)
 
 	file := "cmd.xls"
 	//打开文件
@@ -270,7 +249,9 @@ func main() {
 	}
 	// 获取表格sheeet页面
 	sheet1 := xlFile.GetSheet(0)
-	glg.Debug(sheet1.Row(0).Col(0))
+	for i := 1; i <= int(sheet1.MaxRow); i++ {
+		glg.Debug("sheet1.Row(", i, ").Col(0)", sheet1.Row(i).Col(0))
+	}
 	// 数据检查
 	checkCmd := dataCheck(sheet1)
 	glg.Debug("检查结果：", checkCmd)
